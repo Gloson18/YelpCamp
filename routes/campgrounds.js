@@ -4,14 +4,31 @@ var express = require("express"),
     middleware = require("../middleware");
 
 router.get("/", function(req, res) {
-    Campground.find({}, function(err, allCampgrounds) {
-        if (err) {
-            console.log(err);
-        }
-        else {
-            res.render("campgrounds/index", {campgrounds: allCampgrounds});
-        }
-    });
+    if (req.query.search) {
+        const regex = new RegExp(escapeRegex(req.query.search), 'gi');
+        Campground.find({name: regex}, function(err, allCampgrounds) {
+            if (err) {
+                console.log(err);
+            }
+            else {
+                var noMatch;
+                if (allCampgrounds.length < 1) {
+                    noMatch = "No Campground Found";
+                }
+                res.render("campgrounds/index", {campgrounds: allCampgrounds, noMatch: noMatch});
+            }
+        });
+    }
+    else {
+        Campground.find({}, function(err, allCampgrounds) {
+            if (err) {
+                console.log(err);
+            }
+            else {
+                res.render("campgrounds/index", {campgrounds: allCampgrounds});
+            }
+        });
+    }
 });
 
 router.post("/", middleware.isLoggedIn, function(req, res) {
